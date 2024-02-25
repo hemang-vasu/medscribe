@@ -58,13 +58,14 @@ def upload_document():
 
         #FOR SUMMARIZING TEXT
         summary = abstract_summary_extraction(fileContent)
+        summary = translateText(summary, inputLanguage, outputLanguage)
 
         #summary = 'temp'
         return render_template('display.html', 
             translated_text = response.translations[0].translated_text, 
             original_text = fileContent,
             summary = summary,
-            keyPoints = key_points_extraction(fileContent)
+            #keyPoints = key_points_extraction(fileContent)
         )
         #return redirect(url_for('displayText', translated_text = response.translations[0].translated_text, original_text = fileContent))
         #return response.translations[0].translated_text
@@ -72,7 +73,21 @@ def upload_document():
         # Analyze uploaded document (you can add analysis logic here)
         # For now, let's just return a success message
         #return url_for('translate_document', fileContent = fileContent)
-
+def translateText(fileContent, inputLanguage, outputLanguage):
+    project_id = "medscribe-415400"
+    client = translate.TranslationServiceClient()
+    location = "global"
+    parent = f"projects/{project_id}/locations/{location}"
+    response = client.translate_text(
+        request={
+            "parent": parent,
+            "contents": [fileContent],
+            "mime_type": "text/plain",  # mime types: text/plain, text/html
+            "source_language_code": inputLanguage, #en-US
+            "target_language_code": outputLanguage, #hi
+        }
+    )
+    return response.translations[0].translated_text
 
 def abstract_summary_extraction(transcription):
     client = openai.Client()
