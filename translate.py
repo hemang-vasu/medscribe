@@ -63,7 +63,8 @@ def upload_document():
         return render_template('display.html', 
             translated_text = response.translations[0].translated_text, 
             original_text = fileContent,
-            summary = summary
+            summary = summary,
+            keyPoints = key_points_extraction(fileContent)
         )
         #return redirect(url_for('displayText', translated_text = response.translations[0].translated_text, original_text = fileContent))
         #return response.translations[0].translated_text
@@ -90,6 +91,24 @@ def abstract_summary_extraction(transcription):
         ]
     )
     # Return the content of the completion
+    return response.choices[0].message.content
+
+def key_points_extraction(transcription):
+    client = openai.Client()
+    response = client.chat.completions.create(
+        model="gpt-4",
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an AI expert in analyzing conversations and extracting action items. Please review the text and identify any tasks, assignments, or actions that were agreed upon or mentioned as needing to be done. These could be tasks assigned to specific individuals, or general actions that the group has decided to take. Please list these action items clearly and concisely."
+            },
+            {
+                "role": "user",
+                "content": transcription
+            }
+        ]
+    )
     return response.choices[0].message.content
 
 if __name__ == '__main__':
